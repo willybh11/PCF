@@ -1,0 +1,34 @@
+#!/bin/bash
+# Test bash script to do everything we do
+
+# retrieve and parse volumes and partitions
+IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
+
+# find unmounted parition
+i=0
+for target_volume in "${array[@]}"
+do
+    [[ "$target_volume" == "sd"* && "$target_volume" != *[[:digit:]]* && "${array[ "$( echo "$i + 4" | bc )"]}" != *"/"* ]] && break
+    
+    i=$( echo "$i + 1" | bc)
+done
+
+# get size of drive to partition
+target_size="$( echo "${array["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
+
+printf "/dev/"$target_volume"1 will be imaged and resized to $target_size GB."
+
+[[ "$1" == *"-t"* ]] && exit 1
+
+# apply image, create sdx1
+echo imaging...
+time cat /install/pcf.img > /dev/"$target_volume"
+
+# grow partition
+sudo parted /dev/"$target_volume" resizepart 1 "$target_size"G
+
+# resize filesystem to match partition
+sudo e2fsck -f /dev/"$target_volume"1
+sudo resize2fs -p /dev/"$target_volume"1
+
+reboot
