@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# define text types
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+# retrieve cpu info
+cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
+cpu=${cpu##*: }
+
+printf "\nYou are running on: ${bold}$cpu${normal} \n\n"
+
 # retrieve and parse volumes and partitions
 IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
 
@@ -14,8 +24,7 @@ done
 # get size of drive to partition
 target_size="$( echo "${array["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
 
-clear
-printf "/dev/"$target_volume"1 will be imaged and resized to $target_size GB.\n\n"
+printf "${bold}/dev/"$target_volume"1${normal} will be imaged and resized to ${bold}$target_size GiB${normal}.\n\n"
 
 [[ "$1" == *"-t"* ]] && exit 1
 

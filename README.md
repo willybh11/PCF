@@ -8,3 +8,5 @@
  v3: Improved code, DOES NOT ask to continue (test with -t)
  
  v4: Implemented pv, reboot beep
+
+ v5: Implemented pv installer, cpu name checker, bold text on important info
