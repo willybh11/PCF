@@ -4,11 +4,18 @@
 bold=$(tput bold)
 normal=$(tput sgr0)
 
-# retrieve cpu info
+# retrieve system info
 cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
+cpu=${cpu%CPU*}
 cpu=${cpu##*: }
+mem="$(cat /proc/meminfo | grep 'MemTotal')"
+mem=${mem% kB*}
+mem=${mem##*:}
+mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l) GiB"
 
-printf "\nYou are running on: ${bold}$cpu${normal} \n\n"
+printf "\nCPU: ${bold}$cpu${normal}"
+printf "\nMEM: ${bold}$mem${normal}\n\n"
+
 
 # retrieve and parse volumes and partitions
 IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
@@ -27,9 +34,6 @@ target_size="$( echo "${array["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
 printf "${bold}/dev/"$target_volume"1${normal} will be imaged and resized to ${bold}$target_size GiB${normal}.\n\n"
 
 [[ "$1" == *"-t"* ]] && exit 1
-
-# install pv if necessary
-[[ $(dpkg-query -W -f='${Status}' pv 2>/dev/null | grep -c "ok installed") -eq 0]] && apt-get install pv
 
 # apply image, create sdx1
 pv </install/pcf.img >/dev/"$target_volume"
