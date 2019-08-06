@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# exit if any command fails
+set -e
+
+# define text types
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+# retrieve system info
+cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
+cpu=${cpu%CPU*}
+cpu=${cpu##*: }
+cpu="\nCPU: ${bold}$cpu${normal}"
+mem="$(cat /proc/meminfo | grep 'MemTotal')"
+mem=${mem% kB*}
+mem=${mem##*:}
+mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l) GiB"
+mem="\nMEM: ${bold}$mem${normal}"
+
+printf "$cpu" # "\nCPU: ${bold}$cpu${normal}"
+printf "$mem\n\n" # "\nMEM: ${bold}$mem${normal}\n\n"
+
+# retrieve and parse volumes and partitions
+IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
+
+# find unmounted parition
+i=0
+for target_volume in "${array[@]}"
+do
+    [[ "$target_volume" == "sd"* && "$target_volume" != *[[:digit:]]* && "${array[ "$( echo "$i + 4" | bc )"]}" != *"/"* ]] && break
+    i=$( echo "$i + 1" | bc)
+done
+
+# get size of drive to partition
+target_size="$( echo "${array["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
+
+printf "${bold}/dev/"$target_volume"1${normal} will be imaged and resized to ${bold}$target_size GiB${normal}.\n\n"
+
+[[ "$1" == *"-t"* ]] && exit 1
+
+# apply image, create sdx1
+pv </install/pcf.img >/dev/"$target_volume"
+
+# grow partition
+sudo parted /dev/"$target_volume" resizepart 1 "$target_size"G
+
+# resize filesystem to match partition
+sudo e2fsck -f /dev/"$target_volume"1
+sudo resize2fs -p /dev/"$target_volume"1
+
+# create info file on new image
+sudo mount "/dev/"$target_volume"1" /mnt
+echo "$cpu" > sys_info
+echo "$mem" >> sys_info
+sudo mv sys_info /mnt/whatever/the/path/should/be
+echo "Info file written"
+
+# reboot into new image
+(speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
+reboot
