@@ -11,15 +11,15 @@ normal=$(tput sgr0)
 cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
 cpu=${cpu%CPU*}
 cpu=${cpu##*: }
-cpu="\nCPU: ${bold}$cpu${normal}"
+cpu="CPU: ${bold}$cpu${normal}"
 mem="$(cat /proc/meminfo | grep 'MemTotal')"
 mem=${mem% kB*}
 mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l) GiB"
-mem="\nMEM: ${bold}$mem${normal}"
+mem="MEM: ${bold}$mem${normal}"
 
-printf "$cpu" # "\nCPU: ${bold}$cpu${normal}"
-printf "$mem\n\n" # "\nMEM: ${bold}$mem${normal}\n\n"
+printf "\n$cpu" # "\nCPU: ${bold}$cpu${normal}"
+printf "\n$mem\n\n" # "\nMEM: ${bold}$mem${normal}\n\n"
 
 # retrieve and parse volumes and partitions
 IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
@@ -51,11 +51,9 @@ sudo resize2fs -p /dev/"$target_volume"1
 
 # create info file on new image
 sudo mount "/dev/"$target_volume"1" /mnt
-printf "$cpu" > sys_info
-printf "$mem" >> sys_info
-sudo mv sys_info /mnt/home/pcfit/Documents
+sudo printf "$cpu\n$mem\n" > /mnt/home/pcfit/Documents/sys_info
 echo "Info file written"
 
 # reboot into new image
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
-[[ "$1" != "-r" ]] && reboot
+[[ "$1" != "--noreboot" ]] && reboot
