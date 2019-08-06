@@ -51,8 +51,8 @@ sudo resize2fs -p /dev/"$target_volume"1
 
 # create info file on new image
 sudo mount "/dev/"$target_volume"1" /mnt
-echo "$cpu" > sys_info
-echo "$mem" >> sys_info
+printf "$cpu" > sys_info
+printf "$mem" >> sys_info
 sudo mv sys_info /mnt/home/pcfit/Documents
 echo "Info file written"
 
