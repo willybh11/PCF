@@ -53,7 +53,7 @@ sudo resize2fs -p /dev/"$target_volume"1
 sudo mount "/dev/"$target_volume"1" /mnt
 echo "$cpu" > sys_info
 echo "$mem" >> sys_info
-sudo mv sys_info /mnt/whatever/the/path/should/be
+sudo mv sys_info /mnt/home/pcfit/Documents
 echo "Info file written"
 
 # reboot into new image
