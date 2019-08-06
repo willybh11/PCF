@@ -56,4 +56,4 @@ echo "Info file written"
 
 # reboot into new image
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
-[[ "$1" != "--noreboot" ]] && reboot
+reboot
