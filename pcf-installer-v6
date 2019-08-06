@@ -37,6 +37,12 @@ target_size="$( echo "${array["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
 
 printf "${bold}/dev/"$target_volume"1${normal} will be imaged and resized to ${bold}$target_size GiB${normal}.\n\n"
 
+printf "Starting process in 5 "
+for((j=5;j>0;--j)) do
+	printf "\b\b$j "
+	sleep 1
+done
+
 [[ "$1" == *"-t"* ]] && exit 1
 
 # apply image, create sdx1
