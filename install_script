@@ -15,12 +15,17 @@ mem="$(cat /proc/meminfo | grep 'MemTotal')"
 mem=${mem% kB*}
 mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
-echo Mem: $mem
 
 printf "\nCPU: ${bold}$cpu${normal}"
 printf "\nMEM: ${bold}$mem GiB${normal}\n"
-[[ $(echo "$mem > 1.9" |bc -l) ]] && printf "\n _____________________ \n|                     |\n| ${bold}WARNING: LOW MEMORY${normal} |\n|                     |\n ⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺ \n"
-printf "\n"
+if [[ $(echo "$mem < 1.9" |bc -l) ]]
+then
+	printf "\n _____________________ \n|                     |\n| ${bold}WARNING: LOW MEMORY${normal} |\n|                     |\n ⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺ \n"
+	read -p "Continue with installation? (y\n) " -n 1 yn
+	[[ "$yn" == "n" ]] && exit 1
+fi
+
+printf "\n\n"
 # retrieve and parse volumes and partitions
 IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
 
