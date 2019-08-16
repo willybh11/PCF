@@ -11,16 +11,16 @@ normal=$(tput sgr0)
 cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
 cpu=${cpu%CPU*}
 cpu=${cpu##*: }
-cpu="CPU: ${bold}$cpu${normal}"
 mem="$(cat /proc/meminfo | grep 'MemTotal')"
 mem=${mem% kB*}
 mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
-mem="MEM: ${bold}$mem GiB${normal}"
+echo Mem: $mem
 
-printf "\n$cpu"
-printf "\n$mem GiB\n\n"
-
+printf "\nCPU: ${bold}$cpu${normal}"
+printf "\nMEM: ${bold}$mem GiB${normal}\n"
+[[ $(echo "$mem > 1.9" |bc -l) ]] && printf "\n _____________________ \n|                     |\n| ${bold}WARNING: LOW MEMORY${normal} |\n|                     |\n ⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺ \n"
+printf "\n"
 # retrieve and parse volumes and partitions
 IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
 
@@ -58,7 +58,7 @@ sudo resize2fs -p /dev/"$target_volume"1
 
 # create info file on new image
 sudo mount "/dev/"$target_volume"1" /mnt
-sudo printf "$cpu\n$mem\n" > /mnt/home/pcfit/Documents/sys_info
+sudo printf "CPU: $cpu\nMEM: $mem\n" > /mnt/home/pcfit/Documents/sys_info
 
 # reboot into new image
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
