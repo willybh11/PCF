@@ -17,36 +17,33 @@ mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 mdy=$(date +%m-%d-%Y)
 
-printf "\nCPU: ${bold}$cpu${normal}"
-printf "\nMEM: ${bold}$mem GiB${normal}"
-if [[ $(echo "$mem < 1.8" | bc -l) -eq "1" ]]
-    then
-	printf "\n ______________________ \n|                      |\n| ${bold}WARNING: LOW MEMORY.${normal} |\n|                      |\n ⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺ \n"
-	read -p "Continue with installation? (y\n) " -n 1 yn
-	[[ "$yn" == "n" ]] && printf "\n" && exit 1
-fi
-
-printf "\n\n"
 # retrieve and parse volumes and partitions
 IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
 
 # find unmounted parition
 i=0
-for target_volume in "${array[@]}"
+for target_volume in ${array[@]}
 do
-    [[ "$target_volume" == "sd"* && "$target_volume" != *[[:digit:]]* && "${array[ "$( echo "$i + 4" | bc )"]}" != *"/"* ]] && break
+    [[ "$target_volume" == "sd"[[:lower:]] && "${array[ "$( echo "$i + 4" | bc )"]}" != *"/"* ]] && break
     i=$( echo "$i + 1" | bc)
 done
 
 # get size of drive to partition
 target_size="$( echo "${array["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
 
+# print system info
+printf "\nCPU: ${bold}$cpu${normal}"
+printf "\nMEM: ${bold}$mem GiB${normal}\n\n"
+
+# exit conditions
+[[ "$target_volume" == "sd"[[:lower:]] ]] || (printf "Drive not found, exiting.\n" && exit 1)
+[[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
+
 printf "${bold}/dev/"$target_volume"1${normal} will be imaged and resized to ${bold}$target_size GiB${normal}.\n\n"
 
 # allow user to safely kill process
-for((j=5;j>0;--j)) do
-	printf "\rStarting process in $j... (CTRL+C to exit)"
-	sleep 1
+for((j=5;j>0;--j)); do
+	printf "\rStarting process in $j... (CTRL+C to exit)"; sleep 1
 done
 printf "\r"
 
