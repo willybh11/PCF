@@ -22,8 +22,7 @@ IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr
 
 # find unmounted parition
 i=0
-for target_volume in ${array[@]}
-do
+for target_volume in ${array[@]}; do
     [[ "$target_volume" == "sd"[[:lower:]] && "${array[ "$( echo "$i + 4" | bc )"]}" != *"/"* ]] && break
     i=$( echo "$i + 1" | bc)
 done
@@ -58,10 +57,6 @@ sudo parted /dev/"$target_volume" resizepart 1 "$target_size"G
 # grow filesystem to match partition
 sudo e2fsck -f /dev/"$target_volume"1
 sudo resize2fs -p /dev/"$target_volume"1
-
-# create info file on new image
-sudo mount "/dev/"$target_volume"1" /mnt
-sudo printf "CPU: $cpu\nMEM: $mem\n\n$mdy" > /mnt/home/pcfit/Documents/sys_info
 
 # reboot into new image
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
