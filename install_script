@@ -60,4 +60,4 @@ sudo resize2fs -p /dev/"$target_volume"1
 
 # shut down
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
-shutdown
+poweroff
