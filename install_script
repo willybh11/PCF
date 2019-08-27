@@ -16,7 +16,7 @@ mem=${mem% kB*}
 mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 mdy=$(date +%m-%d-%Y)
-version=$(ls /home/willh/Programming/PCF/ | grep 'v')
+version=$(ls /install/PCF | grep 'v')
 
 # print system info
 [[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nVersion: ${bold}$version${normal}\nDate: ${bold}$mdy${normal}\nCPU: ${bold}$cpu${normal}\nMEM: ${bold}$mem GiB${normal}\n\n"
