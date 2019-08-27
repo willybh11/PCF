@@ -17,6 +17,7 @@ mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 mdy=$(date +%m-%d-%Y)
 version=$(ls /install/PCF | grep 'v')
+IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf-'))"
 
 # print system info
 [[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nVersion: ${bold}$version${normal}\nDate: ${bold}$mdy${normal}\nCPU: ${bold}$cpu${normal}\nMEM: ${bold}$mem GiB${normal}\n\n"
@@ -39,7 +40,7 @@ target_size="$( echo "${array["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
 [[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
 
 # print summary
-printf "${bold}/dev/"$target_volume"1${normal} will be imaged and resized to ${bold}$target_size GiB${normal}.\n\n"
+printf "${bold}/dev/"$target_volume"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}$target_size GiB${normal}.\n\n"
 
 # exit if requested
 [[ "$@" == *"-t"* ]] && exit 1
@@ -51,7 +52,7 @@ done
 printf "\r"
 
 # apply image
-pv </install/pcf.img >/dev/"$target_volume"
+pv </install/"${images[-1]}" >/dev/"$target_volume"
 
 # grow partition
 sudo parted /dev/"$target_volume" resizepart 1 "$target_size"G
