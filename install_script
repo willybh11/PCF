@@ -7,8 +7,6 @@ set -e
 bold=$(tput bold)
 normal=$(tput sgr0)
 
-# check for and apply newest version
-
 # retrieve system info
 cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
 cpu=${cpu%CPU*}
@@ -18,9 +16,10 @@ mem=${mem% kB*}
 mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 mdy=$(date +%m-%d-%Y)
+version=$(ls /home/willh/Programming/PCF/ | grep 'v')
 
 # print system info
-[[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nCPU: ${bold}$cpu${normal}\nMEM: ${bold}$mem GiB${normal}\n\n"
+[[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nVersion: ${bold}$version${normal}\nDate: ${bold}$mdy${normal}\nCPU: ${bold}$cpu${normal}\nMEM: ${bold}$mem GiB${normal}\n\n"
 
 # retrieve and parse volumes and partitions
 IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
