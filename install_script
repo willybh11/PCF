@@ -17,6 +17,9 @@ mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 mdy=$(date +%m-%d-%Y)
 
+# print system info
+[[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nCPU: ${bold}$cpu${normal}\nMEM: ${bold}$mem GiB${normal}\n\n"
+
 # retrieve and parse volumes and partitions
 IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
 
@@ -30,23 +33,21 @@ done
 # get size of drive to partition
 target_size="$( echo "${array["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
 
-# print system info
-printf "\nCPU: ${bold}$cpu${normal}"
-printf "\nMEM: ${bold}$mem GiB${normal}\n\n"
-
 # exit conditions
 [[ "$target_volume" == "sd"[[:lower:]] ]] || (printf "Drive not found, exiting.\n" && exit 1)
 [[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
 
+# print summary
 printf "${bold}/dev/"$target_volume"1${normal} will be imaged and resized to ${bold}$target_size GiB${normal}.\n\n"
+
+# exit if requested
+[[ "$@" == *"-t"* ]] && exit 1
 
 # allow user to safely kill process
 for((j=5;j>0;--j)); do
 	printf "\rStarting process in $j... (CTRL+C to exit)"; sleep 1
 done
 printf "\r"
-
-[[ "$1" == *"-t"* ]] && exit 1
 
 # apply image
 pv </install/pcf.img >/dev/"$target_volume"
@@ -58,6 +59,6 @@ sudo parted /dev/"$target_volume" resizepart 1 "$target_size"G
 sudo e2fsck -f /dev/"$target_volume"1
 sudo resize2fs -p /dev/"$target_volume"1
 
-# shut down
+# end sequence
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
-poweroff
+[[ "$@" == *"-np"* || "$@" == *"--nopoweroff"* ]] || poweroff
