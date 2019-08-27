@@ -7,6 +7,8 @@ set -e
 bold=$(tput bold)
 normal=$(tput sgr0)
 
+# check for and apply newest version
+
 # retrieve system info
 cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
 cpu=${cpu%CPU*}
