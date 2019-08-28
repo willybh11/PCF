@@ -23,24 +23,38 @@ IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf-'))"
 [[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nVersion: ${bold}$version${normal}\nDate: ${bold}$mdy${normal}\nCPU: ${bold}$cpu${normal}\nMEM: ${bold}$mem GiB${normal}\n\n"
 
 # retrieve and parse volumes and partitions
-IFS=' ' read -r -a array <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
+# IFS=' ' read -r -a volumes <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
+volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
+drives=()
+sizes=()
 
-# find unmounted parition
-i=0
-for target_volume in ${array[@]}; do
-    [[ "$target_volume" == "sd"[[:lower:]] && "${array[ "$( echo "$i + 4" | bc )"]}" != *"/"* ]] && break
-    i=$( echo "$i + 1" | bc)
+# find unmounted paritions, get sizes
+for i in ${!volumeInfo[@]}; do
+    if [[ "${volumeInfo[$i]}" == "sd"[[:lower:]] && "${volumeInfo[ "$( echo "$i + 4" | bc )"]}" != *"/"* ]]; then
+        drives+=(${volumeInfo[$i]})
+        sizes+=( $(echo "${volumeInfo["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc) )
+    fi
 done
 
+echo ${drives[@]}
+echo ${sizes[@]}
+exit 1
+
 # get size of drive to partition
-target_size="$( echo "${array["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
+# target_size="$( echo "${volumes["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
 
 # exit conditions
-[[ "$target_volume" == "sd"[[:lower:]] ]] || (printf "Drive not found, exiting.\n" && exit 1)
+[[ ${drives[@]} -eq 0 ]] && (printf "No drives found, exiting.\n" && exit 1)
+# [[ "$target_volume" == "sd"[[:lower:]] ]] || (printf "Drive not found, exiting.\n" && exit 1)
 [[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
 
 # print summary
-printf "${bold}/dev/"$target_volume"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}$target_size GiB${normal}.\n\n"
+
+for i in ${!drives[@]}; do
+    printf "${bold}/dev/"${drives[$i]}"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n\n"
+done
+
+# printf "${bold}/dev/"$target_volume"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}$target_size GiB${normal}.\n\n"
 
 # exit if requested
 [[ "$@" == *"-t"* ]] && exit 1
