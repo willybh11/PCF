@@ -20,7 +20,7 @@ version=$(ls /install/PCF | grep 'v')
 IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf-'))"
 
 # print system info
-[[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nVers.:\t${bold}$version${normal}\nDate:\t${bold}$mdy${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
+[[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nVers:\t${bold}$version${normal}\nDate:\t${bold}$mdy${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
 
 # retrieve volume and partition info
 volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
