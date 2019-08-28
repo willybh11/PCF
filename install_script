@@ -55,9 +55,9 @@ done
 printf "\r"
 
 for i in ${!drives[@]}; do
-    printf "BEGINNING DRIVE #"$i"...\n"
+    printf "BEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
     printf "process goes here\n"
-    printf "DRIVE #"$i" COMPLETE."
+    printf "DRIVE #"$(echo "$i + 1" | bc )" COMPLETE.\n"
 done
 
 exit 1
