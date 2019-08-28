@@ -13,10 +13,8 @@ set -e
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
     cd /install/PCF
-    echo $(pwd)
     sudo git pull
-    echo done
-    sudo ./install_script
+    sudo ./install_script $@
     exit 1
 fi
 
