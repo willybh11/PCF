@@ -10,7 +10,7 @@
 # exit if any command fails
 set -e
 
-echo update pulled! this part is NEW
+echo update pulled! this part is NEWNEWNEW
 
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
