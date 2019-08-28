@@ -52,7 +52,7 @@ done
 for((j=5;j>0;--j)); do
 	printf "\rStarting process in $j... (CTRL+C to exit)"; sleep 1
 done
-printf "\r"printf ' %.0s' {1..$COLUMNS}"\r"
+printf "\r"' %.0s' {1..$COLUMNS}"\r"
 
 for i in ${!drives[@]}; do
     printf "BEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
