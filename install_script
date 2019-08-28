@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# OPTIONS:
+# -p (--poweroff)   :  Poweroff after imaging. 
+# -i (--info)       :  Print system info.
+# -t (--test)       :  Do not make changes to drives.
+# -u (--usb)        :  Use USB image instead of final image.
+
 # exit if any command fails
 set -e
 
@@ -17,10 +23,11 @@ mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 mdy=$(date +%m-%d-%Y)
 version=$(ls /install/PCF | grep 'v')
-IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf-'))"
+[[ "$@" == *"-u"* ]] || IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf-'))"
+[[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb-'))"
 
 # print system info
-[[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nVers:\t${bold}$version${normal}\nDate:\t${bold}$mdy${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
+[[ "$@" == *"-i"* || "$@" == *"--info"* ]] && printf "\nVers:\t${bold}$version${normal}\nDate:\t${bold}$mdy${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
 
 # retrieve volume and partition info
 volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
@@ -48,30 +55,26 @@ done
 # exit if requested
 [[ "$@" == *"-t"* ]] && exit 1
 
-# allow user to safely kill process
-# for((j=5;j>0;--j)); do
-# 	printf "\rStarting process in $j... (CTRL+C to exit)"; sleep 1
-# done
-# printf "\r"' %.0s' {1..$COLUMNS}"\r"
-
 for i in ${!drives[@]}; do
     printf "BEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
-    printf "process goes here\n"
-    printf "DRIVE #"$(echo "$i + 1" | bc )" COMPLETE.\n"
+
+    # apply image
+    pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
+
+    # grow partition
+    sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
+
+    # grow filesystem to match partition
+    sudo e2fsck -f /dev/"${drives[$i]}"1
+    sudo resize2fs -p /dev/"${drives[$i]}"1
+
+    printf "DRIVE COMPLETE.\n"
 done
 
-exit 1
+(speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
 
-# apply image
-pv </install/"${images[-1]}" >/dev/"$target_volume"
-
-# grow partition
-sudo parted /dev/"$target_volume" resizepart 1 "$target_size"G
-
-# grow filesystem to match partition
-sudo e2fsck -f /dev/"$target_volume"1
-sudo resize2fs -p /dev/"$target_volume"1
+# poweroff if requested
+[[ "$@" == *"-p"* ]] && poweroff
 
 # end sequence
-(speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
-[[ "$@" == *"-np"* || "$@" == *"--nopoweroff"* ]] || poweroff
+# [[ "$@" == *"-np"* || "$@" == *"--nopoweroff"* ]] || poweroff
