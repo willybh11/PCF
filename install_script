@@ -15,9 +15,10 @@ echo update pulled! this part is NEW
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
     cd /install/PCF
-    [[ "$( echo $(sudo git pull))" == *"up-to-date"* ]] && break
-    sudo ./install_script $@
-    exit 1
+    if [[ "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
+        sudo ./install_script $@
+        exit 1
+    fi
 fi
 
 # define text types
