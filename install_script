@@ -10,10 +10,12 @@
 # exit if any command fails
 set -e
 
+echo update pulled! this part is new
+
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
     cd /install/PCF
-    sudo git pull
+    [[ "$( echo $(sudo git pull))" == *"up-to-date"* ]] && break
     sudo ./install_script $@
     exit 1
 fi
