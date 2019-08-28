@@ -38,7 +38,6 @@ done
 
 echo ${drives[@]}
 echo ${sizes[@]}
-exit 1
 
 # get size of drive to partition
 # target_size="$( echo "${volumes["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
