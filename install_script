@@ -22,8 +22,7 @@ IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf-'))"
 # print system info
 [[ "$@" == *"-ns"* || "$@" == *"--nostat"* ]] || printf "\nVersion: ${bold}$version${normal}\nDate: ${bold}$mdy${normal}\nCPU: ${bold}$cpu${normal}\nMEM: ${bold}$mem GiB${normal}\n\n"
 
-# retrieve and parse volumes and partitions
-# IFS=' ' read -r -a volumes <<< "$(echo $(lsblk -b -n -o name,size,mountpoint) | tr -d '\n')"
+# retrieve volume and partition info
 volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
 drives=()
 sizes=()
@@ -36,15 +35,8 @@ for i in ${!volumeInfo[@]}; do
     fi
 done
 
-echo ${drives[@]}
-echo ${sizes[@]}
-
-# get size of drive to partition
-# target_size="$( echo "${volumes["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
-
 # exit conditions
 [[ ${#drives[@]} -eq 0 ]] && (printf "No drives found, exiting.\n" && exit 1)
-# [[ "$target_volume" == "sd"[[:lower:]] ]] || (printf "Drive not found, exiting.\n" && exit 1)
 [[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
 
 # print summary
@@ -52,8 +44,6 @@ echo ${sizes[@]}
 for i in ${!drives[@]}; do
     printf "${bold}/dev/"${drives[$i]}"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n\n"
 done
-
-# printf "${bold}/dev/"$target_volume"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}$target_size GiB${normal}.\n\n"
 
 # exit if requested
 [[ "$@" == *"-t"* ]] && exit 1
@@ -63,6 +53,14 @@ for((j=5;j>0;--j)); do
 	printf "\rStarting process in $j... (CTRL+C to exit)"; sleep 1
 done
 printf "\r"
+
+for i in ${!drives[@]}; do
+    printf "BEGINNING DRIVE #"$i"...\n"
+    printf "process goes here\n"
+    printf "DRIVE #"$i" COMPLETE."
+done
+
+exit 1
 
 # apply image
 pv </install/"${images[-1]}" >/dev/"$target_volume"
