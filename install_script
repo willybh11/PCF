@@ -43,7 +43,7 @@ echo ${sizes[@]}
 # target_size="$( echo "${volumes["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc )"
 
 # exit conditions
-[[ ${drives[@]} -eq 0 ]] && (printf "No drives found, exiting.\n" && exit 1)
+[[ ${!drives[@]} -eq 0 ]] && (printf "No drives found, exiting.\n" && exit 1)
 # [[ "$target_volume" == "sd"[[:lower:]] ]] || (printf "Drive not found, exiting.\n" && exit 1)
 [[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
 
