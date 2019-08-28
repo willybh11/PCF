@@ -5,12 +5,10 @@
 # -i (--info)       :  Print system info.
 # -t (--test)       :  Do not make changes to drives.
 # -u (--usb)        :  Use USB image instead of final image.
-# -g (--git)        :  Check for updates before running! ASSUMED INTERNET CONNECTION
+# -g (--git)        :  Check for updates before running. ASSUMED INTERNET CONNECTION!
 
 # exit if any command fails
 set -e
-
-echo update pulled! this part is NEWNEWNEWNEWNEWNEWNEW
 
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
