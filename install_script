@@ -5,9 +5,18 @@
 # -i (--info)       :  Print system info.
 # -t (--test)       :  Do not make changes to drives.
 # -u (--usb)        :  Use USB image instead of final image.
+# -g (--git)        :  Check for updates before running! ASSUMED INTERNET CONNECTION
 
 # exit if any command fails
 set -e
+
+# update if requested
+if [[ "$@" == "-g" ]]; then
+    cd /install/PCF
+    sudo git pull
+    sudo ./install_script
+    exit 1
+fi
 
 # define text types
 bold=$(tput bold)
@@ -27,7 +36,7 @@ version=$(ls /install/PCF | grep 'v')
 [[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb-'))"
 
 # print system info
-[[ "$@" == *"-i"* || "$@" == *"--info"* ]] && printf "\nVers:\t${bold}$version${normal}\nDate:\t${bold}$mdy${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
+[[ "$@" == *"-i"* ]] && printf "\nVers:\t${bold}$version${normal}\nDate:\t${bold}$mdy${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
 
 # retrieve volume and partition info
 volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
@@ -47,16 +56,15 @@ done
 [[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
 
 # print summary
-
 for i in ${!drives[@]}; do
-    printf "${bold}/dev/"${drives[$i]}"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n\n"
+    printf "${bold}/dev/"${drives[$i]}"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
 done
 
 # exit if requested
 [[ "$@" == *"-t"* ]] && exit 1
 
 for i in ${!drives[@]}; do
-    printf "BEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
+    printf "\nBEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
 
     # apply image
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
@@ -75,6 +83,3 @@ done
 
 # poweroff if requested
 [[ "$@" == *"-p"* ]] && poweroff
-
-# end sequence
-# [[ "$@" == *"-np"* || "$@" == *"--nopoweroff"* ]] || poweroff
