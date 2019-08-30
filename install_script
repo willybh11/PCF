@@ -14,8 +14,6 @@ set -e
 if [[ "$@" == *"-g"* ]]; then
     cd /install/PCF
     if [[ "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
-        clear
-        echo Updated the script!
         sudo ./install_script $@
         exit 1
     fi
@@ -35,8 +33,8 @@ mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 mdy=$(date +%m-%d-%Y)
 version=$(ls /install/PCF | grep 'v')
-[[ "$@" == *"-u"* ]] || IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf-'))"
-[[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb-'))"
+[[ "$@" == *"-u"* ]] || IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf'))"
+[[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb'))"
 
 # print system info
 [[ "$@" == *"-i"* ]] && printf "\nVers:\t${bold}$version${normal}\nDate:\t${bold}$mdy${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
