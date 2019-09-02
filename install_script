@@ -1,54 +1,46 @@
 #!/bin/bash
 
 # OPTIONS:
+# -p (--poweroff)   :  Poweroff after imaging. 
+# -i (--info)       :  Print system info.
 # -t (--test)       :  Do not make changes to drives.
-# -u (--usb)        :  Use USB image instead of final image; do not print system info
-# -g (--git)        :  Check for updates before running.
+# -u (--usb)        :  Use USB image instead of final image.
+# -g (--git)        :  Check for updates before running. ASSUMED INTERNET CONNECTION!
 
 # exit if any command fails
 set -e
-
-# define text types
-bold=$(tput bold)
-normal=$(tput sgr0)
 
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
     cd /install/PCF
     git_output="$( echo $(sudo git pull))"
-    if [[ git_output == *"up-to-date"* ]]
-    then
-        printf "Script is up to date!"
-    elif [[ git_output == *"Could not resolve hostname github.com"* ]]; then
-        printf "No internet connection; cannot update."
+    if   [[ git_output == *"date"* ]];       then; printf "Script is up to date!"
+    elif [[ git_output == *"github.com"* ]]; then; printf "No internet connection; cannot update."
     else 
         sudo ./install_script $@
         exit 1
     fi
 fi
 
-if [[ "$@" == *"-u"* ]]
-then    # we are imaging a USB
-    IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb'))"
+# define text types
+bold=$(tput bold)
+normal=$(tput sgr0)
 
-else    # we are imaging a drive
-    # retrieve system info
-    IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf'))"
-    image="${images[-1]}"
-    cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
-    cpu=${cpu%CPU*}
-    cpu=${cpu##*: }
-    mem="$(cat /proc/meminfo | grep 'MemTotal')"
-    mem=${mem% kB*}
-    mem=${mem##*:}
-    mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
-    version=$(ls /install/PCF | grep 'v')
+# retrieve system info
+cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
+cpu=${cpu%CPU*}
+cpu=${cpu##*: }
+mem="$(cat /proc/meminfo | grep 'MemTotal')"
+mem=${mem% kB*}
+mem=${mem##*:}
+mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
+# mdy=$(date +%m-%d-%Y)
+version=$(ls /install/PCF | grep 'v')
+[[ "$@" == *"-u"* ]] || IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf'))"
+[[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb'))"
 
-    printf "\nVers:\t${bold}$version${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
-
-    [[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
-
-fi
+# print system info
+[[ "$@" == *"-i"* ]] && printf "\nVers:\t${bold}$version${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
 
 # retrieve volume and partition info
 volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
@@ -65,6 +57,7 @@ done
 
 # exit conditions
 [[ ${#drives[@]} -eq 0 ]] && (printf "No drives found, exiting.\n" && exit 1)
+[[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
 
 # print summary
 for i in ${!drives[@]}; do
@@ -75,10 +68,10 @@ done
 [[ "$@" == *"-t"* ]] && exit 1
 
 for i in ${!drives[@]}; do
-    [[ "$@" == *"-u"* ]] && printf "\nBEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
+    printf "\nBEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
 
     # apply image
-    pv </install/"$image" >/dev/"${drives[$i]}"
+    pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
 
     # grow partition
     sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
@@ -87,10 +80,10 @@ for i in ${!drives[@]}; do
     sudo e2fsck -f /dev/"${drives[$i]}"1
     sudo resize2fs -p /dev/"${drives[$i]}"1
 
-    [[ "$@" == *"-u"* ]] && printf "DRIVE COMPLETE.\n"
+    printf "DRIVE COMPLETE.\n"
 done
 
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
 
-# poweroff if necessary
-[[ "$@" == *"-u"* ]] || poweroff
+# poweroff if requested
+[[ "$@" == *"-p"* ]] && poweroff
