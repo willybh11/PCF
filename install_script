@@ -31,13 +31,13 @@ mem="$(cat /proc/meminfo | grep 'MemTotal')"
 mem=${mem% kB*}
 mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
-mdy=$(date +%m-%d-%Y)
+# mdy=$(date +%m-%d-%Y)
 version=$(ls /install/PCF | grep 'v')
 [[ "$@" == *"-u"* ]] || IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf'))"
 [[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb'))"
 
 # print system info
-[[ "$@" == *"-i"* ]] && printf "\nVers:\t${bold}$version${normal}\nDate:\t${bold}$mdy${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
+[[ "$@" == *"-i"* ]] && printf "\nVers:\t${bold}$version${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
 
 # retrieve volume and partition info
 volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
