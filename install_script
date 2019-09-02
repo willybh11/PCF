@@ -14,10 +14,10 @@ set -e
 if [[ "$@" == *"-g"* ]]; then
     cd /install/PCF
     git_output="$( echo $(sudo git pull))"
-    printf "This is the output:\n\n"
+    printf "\nThis is the output:\n\n"
     printf $git_output
-    if   [[ git_output == *"date"* ]];       then printf "Script is up to date!"
-    elif [[ git_output == *"github.com"* ]]; then printf "No internet connection; cannot update."
+    if   [[ git_output == *"Already"* ]];       then printf "Script is up to date!"
+    elif [[ git_output == *"ssh:"* ]]; then printf "No internet connection; cannot update."
     else 
         sudo ./install_script $@
         exit 1
