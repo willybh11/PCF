@@ -68,7 +68,7 @@ done
 [[ "$@" == *"-t"* ]] && exit 1
 
 for i in ${!drives[@]}; do
-    printf "\nBEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
+    [[ "${#drives[@]}" != "1" ]] && printf "\nBEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
 
     # apply image
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
@@ -80,7 +80,7 @@ for i in ${!drives[@]}; do
     sudo e2fsck -f /dev/"${drives[$i]}"1
     sudo resize2fs -p /dev/"${drives[$i]}"1
 
-    printf "DRIVE COMPLETE.\n"
+    [[ "${#drives[@]}" != "1" ]] && printf "DRIVE COMPLETE.\n"
 done
 
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
