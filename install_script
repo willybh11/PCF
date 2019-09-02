@@ -13,12 +13,7 @@ set -e
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
     cd /install/PCF
-    git_output="$( echo $(sudo git pull))"
-    printf "\nThis is the output:\n\n"
-    printf $git_output
-    if   [[ git_output == *"Already"* ]];       then printf "Script is up to date!"
-    elif [[ git_output == *"ssh:"* ]]; then printf "No internet connection; cannot update."
-    else 
+    if [[ "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
         sudo ./install_script $@
         exit 1
     fi
@@ -70,7 +65,7 @@ done
 [[ "$@" == *"-t"* ]] && exit 1
 
 for i in ${!drives[@]}; do
-    [[ "${#drives[@]}" != "1" ]] && printf "\nBEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
+    printf "\nBEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
 
     # apply image
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
@@ -82,7 +77,7 @@ for i in ${!drives[@]}; do
     sudo e2fsck -f /dev/"${drives[$i]}"1
     sudo resize2fs -p /dev/"${drives[$i]}"1
 
-    [[ "${#drives[@]}" != "1" ]] && printf "DRIVE COMPLETE.\n"
+    printf "DRIVE COMPLETE.\n"
 done
 
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
