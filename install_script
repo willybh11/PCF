@@ -1,19 +1,21 @@
 #!/bin/bash
 
 # OPTIONS:
-# -p (--poweroff)   :  Poweroff after imaging. 
-# -i (--info)       :  Print system info.
-# -t (--test)       :  Do not make changes to drives.
-# -u (--usb)        :  Use USB image instead of final image.
-# -g (--git)        :  Check for updates before running. ASSUMED INTERNET CONNECTION!
+# -np (no poweroff) :  Do not poweroff after imaging. 
+# -i  (info)        :  Print system info.
+# -t  (test)        :  Do not make changes to drives.
+# -u  (usb)         :  Use USB image instead of final image.
+# -g  (git)         :  Check for updates before running.
 
 # exit if any command fails
 set -e
 
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
+    ping -q -w 1 -c 1 `ip r | grep default | cut -d ' ' -f 3` > /dev/null && connection="good" || connection="bad"
+    printf "Internet connection is: "$connection
     cd /install/PCF
-    if [[ "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
+    if [[ $connection == "good" && "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
         sudo ./install_script $@
         exit 1
     fi
@@ -65,22 +67,26 @@ done
 [[ "$@" == *"-t"* ]] && exit 1
 
 for i in ${!drives[@]}; do
-    printf "\nBEGINNING DRIVE #"$(echo "$i + 1" | bc )"...\n"
+    printf "\nDRIVE #"$(echo "$i + 1" | bc )"\n"
 
     # apply image
+    printf "IMAGING:\n"
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
 
     # grow partition
+    printf "RESIZING PARTITION:\n"
+    umount /dev/"${drives[$i]}"1
     sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
 
     # grow filesystem to match partition
+    printf "RESIZING FILESYSTEM:\n"
     sudo e2fsck -f /dev/"${drives[$i]}"1
     sudo resize2fs -p /dev/"${drives[$i]}"1
 
-    printf "DRIVE COMPLETE.\n"
+    printf "DRIVE COMPLETE.\n\n"
 done
 
 (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; kill -9 $pid
 
 # poweroff if requested
-[[ "$@" == *"-p"* ]] && poweroff
+[[ "$@" == *"-np"* ]] || poweroff
