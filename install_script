@@ -58,6 +58,16 @@ done
 [[ ${#drives[@]} -eq 0 ]] && (printf "No drives found, exiting.\n" && exit 1)
 [[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
 
+# check selected drives for partitions
+for i in ${!drives[@]}; do
+    echo "checking drives for partitions..."
+    if [[ "${volumeInfo[@]}" != *"${drives[$i]}1"* ]]; then # create partition if none exist
+        echo "  Adding partition to "${drives[$i]}
+        sudo parted /dev/sdb mkpart primary ext4 0 1024 ignore
+    fi
+    echo "...done"
+done
+
 # print summary
 for i in ${!drives[@]}; do
     printf "${bold}/dev/"${drives[$i]}"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
