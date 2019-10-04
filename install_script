@@ -85,7 +85,9 @@ for i in ${!drives[@]}; do
 
     # grow partition
     printf "RESIZING PARTITION:\n"
-    umount /dev/"${drives[$i]}"1
+    if [[ 1 -eq 1 ]]; then
+        umount /dev/"${drives[$i]}"1
+    fi
     sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
 
     # grow filesystem to match partition
