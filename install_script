@@ -85,8 +85,11 @@ for i in ${!drives[@]}; do
 
     # grow partition
     printf "RESIZING PARTITION:\n"
-    if [[ 1 -eq 1 ]]; then
+    if mountpoint -q /mnt/"${drives[$i]}"1; then
         umount /dev/"${drives[$i]}"1
+        printf "Drive unmounted."
+    else
+        printf "No need to unmount."
     fi
     sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
 
