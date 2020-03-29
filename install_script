@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # OPTIONS:
-# -np (no poweroff) :  Do not poweroff after imaging. 
-# -i  (info)        :  Print system info.
-# -t  (test)        :  Do not make changes to drives.
-# -u  (usb)         :  Use USB image instead of final image.
-# -g  (git)         :  Check for updates before running.
+# -np (no poweroff) :  Does not poweroff after imaging.
+# -i  (info)        :  Prints system info.
+# -t  (test)        :  Does not make changes to drives.
+# -u  (usb)         :  Uses USB image instead of final image. Doesn't poweroff after imaging.
+# -g  (git)         :  Checks for updates (and potentially update the script) before running.
 
 # exit if any command fails
 set -e
@@ -33,12 +33,11 @@ mem="$(cat /proc/meminfo | grep 'MemTotal')"
 mem=${mem% kB*}
 mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
-version=$(ls /install/PCF | grep 'v')
 [[ "$@" == *"-u"* ]] || IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf'))"
 [[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb'))"
 
 # print system info
-[[ "$@" == *"-i"* ]] && printf "\nVers:\t${bold}$version${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
+[[ "$@" == *"-i"* ]] && printf "\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
 
 # unmount if necessary
 if [[ "$@" != *"-u"* ]]; then
@@ -90,19 +89,19 @@ for i in ${!drives[@]}; do
     printf "${bold}/dev/"${drives[$i]}"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
 done
 
-# exit if requested
+# exit if in test mode
 [[ "$@" == *"-t"* ]] && exit 1
 
 for i in ${!drives[@]}; do
     printf "\nDRIVE #"$(echo "$i + 1" | bc )"\n"
 
-    printf "IMAGING:\n"
+    printf "IMAGING...\n"
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
 
-    printf "RESIZING PARTITION:\n"
+    printf "RESIZING PARTITION...\n"
     sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
 
-    printf "RESIZING FILESYSTEM:\n"
+    printf "RESIZING FILESYSTEM...\n"
     sudo e2fsck -f /dev/"${drives[$i]}"1
     sudo resize2fs -p /dev/"${drives[$i]}"1
 
