@@ -41,11 +41,6 @@ version=$(ls /install/PCF | grep 'v')
 # print system info
 [[ "$@" == *"-i"* ]] && printf "\nVers:\t${bold}$version${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
 
-# retrieve volume and partition info
-volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
-drives=()
-sizes=()
-
 # unmount if necessary
 num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
 rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
@@ -57,6 +52,10 @@ if [ "$num" -gt "1" ]; then
     fi
 fi
 
+# retrieve volume and partition info
+volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
+drives=()
+sizes=()
 
 # find unmounted paritions, get sizes
 for i in ${!volumeInfo[@]}; do
