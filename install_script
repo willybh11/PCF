@@ -8,7 +8,7 @@
 # -g  (git)         :  Check for updates before running.
 
 # exit if any command fails
-# set -e
+set -e
 
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
@@ -115,4 +115,4 @@ done
 ( (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; (kill -9 $pid) > /dev/null 2>&1 ) > /dev/null 2>&1
 
 # reboot if requested
-[[ "$@" == *"-np"* ]] || reboot
+[[ "$@" == *"-np"* ]] || [[ "$@" == *"-u"* ]] || reboot
