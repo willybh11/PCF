@@ -13,7 +13,7 @@ set -e
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
     ping -q -w 1 -c 1 `ip r | grep default | cut -d ' ' -f 3` > /dev/null && connection="good" || connection="bad"
-    printf "Internet connection is: "$connection
+    printf "Internet connection is: "$connection"\n"
     cd /install/PCF
     if [[ $connection == "good" && "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
         sudo ./install_script $@
