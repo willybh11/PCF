@@ -42,21 +42,23 @@ version=$(ls /install/PCF | grep 'v')
 [[ "$@" == *"-i"* ]] && printf "\nVers:\t${bold}$version${normal}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
 
 # unmount if necessary
-echo "checking for mounted drives..."
-num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
-rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
-if [ "$num" -gt "1" ]; then
-    if [[ "$rootfs" == *"b"* ]]; then
-        echo "unmounting sda1..."
-        sudo umount /dev/sda1
-    elif [[ "$rootfs" == *"a"* ]]; then
-        echo "unmounting sdb1..."
-        sudo umount /dev/sdb1
-    else
-        echo "No need to unmount."
+if [[ "$@" != *"-u"* ]]; then
+    echo "checking for mounted drives..."
+    num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
+    rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
+    if [ "$num" -gt "1" ]; then
+        if [[ "$rootfs" == *"b"* ]]; then
+            echo "unmounting sda1..."
+            sudo umount /dev/sda1
+        elif [[ "$rootfs" == *"a"* ]]; then
+            echo "unmounting sdb1..."
+            sudo umount /dev/sdb1
+        else
+            echo "No need to unmount."
+        fi
     fi
+    echo "...done"
 fi
-echo "...done"
 
 # retrieve volume and partition info
 volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
