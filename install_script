@@ -33,7 +33,6 @@ mem="$(cat /proc/meminfo | grep 'MemTotal')"
 mem=${mem% kB*}
 mem=${mem##*:}
 mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
-# mdy=$(date +%m-%d-%Y)
 version=$(ls /install/PCF | grep 'v')
 [[ "$@" == *"-u"* ]] || IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf'))"
 [[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb'))"
@@ -47,11 +46,10 @@ if [[ "$@" != *"-u"* ]]; then
     num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
     rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
     if [ "$num" -gt "1" ]; then
+        echo "unmounting..."
         if [[ "$rootfs" == *"b"* ]]; then
-            echo "unmounting sda1..."
             sudo umount /dev/sda1
         elif [[ "$rootfs" == *"a"* ]]; then
-            echo "unmounting sdb1..."
             sudo umount /dev/sdb1
         else
             echo "No need to unmount."
@@ -82,7 +80,7 @@ for i in ${!drives[@]}; do
     echo "checking drives for partitions..."
     if [[ "${volumeInfo[@]}" != *"${drives[$i]}1"* ]]; then # create partition if none exist
         echo "  Adding partition to "${drives[$i]}
-        sudo parted /dev/sdb mkpart primary ext4 0 1024 ignore
+        sudo parted /dev/"${drives[$i]}"1 mkpart primary ext4 0 1024 ignore
     fi
     echo "...done"
 done
