@@ -56,7 +56,7 @@ if [ "$num" -gt "1" ]; then
         echo "No need to unmount."
     fi
 fi
-echo "done."
+echo "...done"
 
 # retrieve volume and partition info
 volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
