@@ -122,8 +122,8 @@ for i in ${!drives[@]}; do
     sudo parted /dev/"${drives[$i]}" resizepart "${partnum}" "${sizes[$i]}"G
 
     printf "RESIZING FILESYSTEM...\n"
-    sudo e2fsck -f -y /dev/"${drives[$i]}${partnum}"
-    sudo resize2fs -p /dev/"${drives[$i]}${partnum}"
+    sudo /install/PCF/e2fsprogs-1.43.1/e2fsck/e2fsck -f -y /dev/"${drives[$i]}${partnum}" || true
+    sudo /install/PCF/e2fsprogs-1.43.1/resize/resize2fs -p /dev/"${drives[$i]}${partnum}"
 
     printf "DRIVE COMPLETE.\n\n"
 done
