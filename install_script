@@ -102,13 +102,8 @@ for i in ${!drives[@]}; do
     sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
 
     printf "RESIZING FILESYSTEM...\n"
-<<<<<<< HEAD
-    sudo /install/PCF/e2fsprogs-1.43.1/e2fsck/e2fsck -f -y /dev/"${drives[$i]}${partnum}" || true
-    sudo /install/PCF/e2fsprogs-1.43.1/resize/resize2fs -p /dev/"${drives[$i]}${partnum}"
-=======
     sudo e2fsck -f /dev/"${drives[$i]}"1
     sudo resize2fs -p /dev/"${drives[$i]}"1
->>>>>>> parent of ec3f24e... Update for Xubuntu 20.04
 
     printf "DRIVE COMPLETE.\n\n"
 done
