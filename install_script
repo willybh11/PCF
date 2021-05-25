@@ -6,7 +6,6 @@
 # -t  (test)        :  Does not make changes to drives.
 # -u  (usb)         :  Uses USB image instead of final image. Doesn't poweroff after imaging.
 # -g  (git)         :  Checks for updates (and potentially update the script) before running.
-# -18 (xubuntu 18.x):  Resizes partitions necessary for xubuntu 18.x rather than 20.04.
 
 # exit if any command fails
 set -e
@@ -20,15 +19,6 @@ if [[ "$@" == *"-g"* ]]; then
         sudo ./install_script $@
         exit 1
     fi
-fi
-
-# Make xubuntu 20.04 changes if requested
-if [[ "$@" != *"-18"* ]]; then
-	partnum=5
-	mountnum=2
-else
-	partnum=1
-	mountnum=1
 fi
 
 # define text types
@@ -54,22 +44,15 @@ if [[ "$@" != *"-u"* ]]; then
     echo "checking for mounted drives..."
     num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
     rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
-    if [ "$num" -gt "${mountnum}" ]; then
+    if [ "$num" -gt "1" ]; then
         echo "unmounting..."
-        [[ "$rootfs" == *"b"* ]] && deviceLetter="a"
-        [[ "$rootfs" == *"a"* ]] && deviceLetter="b"
-        [[ "$@" == *"-16"* ]] || sudo umount /dev/sd"${deviceLetter}"5 || true
-        sudo umount /dev/sd"${deviceLetter}"1 || true
-        
-        #if [[ "$rootfs" == *"b"* ]]; then
-        #    [[ "$@" == *"-16"* ]] || sudo umount /dev/sda5 || true
-        #    sudo umount /dev/sda1 || true
-        #elif [[ "$rootfs" == *"a"* ]]; then
-        #    [[ "$@" == *"-16"* ]] || sudo umount /dev/sdb5 || true
-        #    sudo umount /dev/sdb1 || true
-        #else
-        #    echo "No need to unmount."
-        #fi
+        if [[ "$rootfs" == *"b"* ]]; then
+            sudo umount /dev/sda1
+        elif [[ "$rootfs" == *"a"* ]]; then
+            sudo umount /dev/sdb1
+        else
+            echo "No need to unmount."
+        fi
     fi
     echo "...done"
 fi
@@ -83,7 +66,7 @@ sizes=()
 for i in ${!volumeInfo[@]}; do
     if [[ "${volumeInfo[$i]}" == "sd"[[:lower:]] && "${volumeInfo[ "$( echo "$i + 4" | bc )"]}" != *"/"* ]]; then
         drives+=(${volumeInfo[$i]})
-        sizes+=( $(echo "${volumeInfo["$( echo "$i + 1" | bc )"]} / 1024^3 - 7" | bc) )
+        sizes+=( $(echo "${volumeInfo["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc) )
     fi
 done
 
@@ -96,14 +79,14 @@ for i in ${!drives[@]}; do
     echo "checking drives for partitions..."
     if [[ "${volumeInfo[@]}" != *"${drives[$i]}1"* ]]; then # create partition if none exist
         echo "  Adding partition to "${drives[$i]}
-        sudo parted /dev/"${drives[$i]}${partnum}" mkpart primary ext4 0 1024 ignore
+        sudo parted /dev/"${drives[$i]}"1 mkpart primary ext4 0 1024 ignore
     fi
     echo "...done"
 done
 
 # print summary
 for i in ${!drives[@]}; do
-    printf "${bold}/dev/"${drives[$i]}${partnum}"${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
+    printf "${bold}/dev/"${drives[$i]}"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
 done
 
 # exit if in test mode
@@ -116,14 +99,16 @@ for i in ${!drives[@]}; do
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
 
     printf "RESIZING PARTITION...\n"
-    if [[ "$@" != *"-18"* ]]; then
-    	sudo parted /dev/"${drives[$i]}" resizepart 2 "${sizes[$i]}"G # sdx5 is a logical partition of sdx2, so sdx2 must be resized first.
-    fi
-    sudo parted /dev/"${drives[$i]}" resizepart "${partnum}" "${sizes[$i]}"G
+    sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
 
     printf "RESIZING FILESYSTEM...\n"
+<<<<<<< HEAD
     sudo /install/PCF/e2fsprogs-1.43.1/e2fsck/e2fsck -f -y /dev/"${drives[$i]}${partnum}" || true
     sudo /install/PCF/e2fsprogs-1.43.1/resize/resize2fs -p /dev/"${drives[$i]}${partnum}"
+=======
+    sudo e2fsck -f /dev/"${drives[$i]}"1
+    sudo resize2fs -p /dev/"${drives[$i]}"1
+>>>>>>> parent of ec3f24e... Update for Xubuntu 20.04
 
     printf "DRIVE COMPLETE.\n\n"
 done
