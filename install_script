@@ -10,20 +10,25 @@
 # exit if any command fails
 set -e
 
+# define text types
+bold=$(tput bold)
+normal=$(tput sgr0)
+
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
     ping -q -w 1 -c 1 `ip r | grep default | cut -d ' ' -f 3` > /dev/null && connection="good" || connection="bad"
-    printf "Internet connection is: "$connection"\n"
+    printf "${bold}Internet connection is: ${normal}$connection\n"
+    printf "${bold}Attempmting update...\n${normal}"
     cd /install/PCF
     if [[ $connection == "good" && "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
         sudo ./install_script $@
         exit 1
+    else 
+        echo "${bold}...no update found.${normal}"
     fi
 fi
 
-# define text types
-bold=$(tput bold)
-normal=$(tput sgr0)
+
 
 # retrieve system info
 cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
@@ -37,23 +42,23 @@ mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 [[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb'))"
 
 # print system info
-[[ "$@" == *"-i"* ]] && printf "\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n"
+[[ "$@" == *"-i"* ]] && printf "${bold}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n${normal}"
 
 # unmount if necessary
 if [[ "$@" != *"-u"* ]]; then
-    echo "checking for mounted drives..."
+    printf "${bold}checking for mounted drives...${normal}"
     num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
     rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
     if [ "$num" -gt "1" ]; then
-        echo "unmounting..."
+        printf "${bold}unmounting...${normal}\n"
         if [[ "$rootfs" == *"b"* ]]; then
             sudo umount /dev/sda?* || true
         elif [[ "$rootfs" == *"a"* ]]; then
             sudo umount /dev/sdb?* || true
         fi
-        echo "...done"
+        printf "${bold}...done${normal}\n"
     else
-        echo "No need to unmount."
+        printf "${bold}No need to unmount.${normal}\n"
     fi
 fi
 
@@ -85,36 +90,33 @@ done
 
 # wipe drives and add partitions
 for i in ${!drives[@]}; do
-    echo "wiping drive /dev/${drives[$i]}..."
+    printf "${bold}wiping drive /dev/${drives[$i]}...\n${normal}"
     sudo wipefs -a /dev/"${drives[$i]}"
-    echo "...done"
-    echo "Adding partition to ${drives[$i]} ..."
+    printf "${bold}...done\n${normal}"
+    printf "${bold}Adding partition to ${drives[$i]} ...\n${normal}"
 	sudo parted /dev/"${drives[$i]}" mklabel gpt
     sudo parted /dev/"${drives[$i]}" mkpart primary ext4 0% 100%
-    echo "...done"
+    printf "${bold}...done\n${normal}"
 done
 
-
+# image and resize drives
 for i in ${!drives[@]}; do
-    printf "\nDRIVE #"$(echo "$i + 1" | bc )"\n"
+    printf "${bold}\nDRIVE #"$(echo "$i + 1" | bc )"\n${normal}"
 
-    printf "IMAGING...\n"
+    printf "${bold}IMAGING...\n${normal}"
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
 
-    printf "RESIZING EXTENDED PARTITION...\n"
+    printf ${bold}"RESIZING EXTENDED PARTITION...\n${normal}"
     sudo parted /dev/"${drives[$i]}" resizepart 2 "${sizes[$i]}"G
-    printf "RESIZING LOGICAL PARTITION... \n"
+    printf "${bold}RESIZING LOGICAL PARTITION... \n${normal}"
     sudo parted /dev/"${drives[$i]}" resizepart 5 "${sizes[$i]}"G
 
-    printf "RESIZING FILESYSTEM...\n"
+    printf "${bold}RESIZING FILESYSTEM...\n${normal}"
     sudo e2fsck -f -p /dev/"${drives[$i]}"5
     sudo resize2fs -p /dev/"${drives[$i]}"5
 
-    printf "DRIVE COMPLETE.\n\n"
+    printf "${bold}DRIVE COMPLETE.\n\n${normal}"
 done
-
-# beep
-( (speaker-test -t sine -f 800 )& pid=$! ; sleep 0.3s ; (kill -9 $pid) > /dev/null 2>&1 ) > /dev/null 2>&1
 
 # reboot if requested
 [[ "$@" == *"-np"* ]] || [[ "$@" == *"-u"* ]] || reboot
