@@ -47,14 +47,14 @@ if [[ "$@" != *"-u"* ]]; then
     if [ "$num" -gt "1" ]; then
         echo "unmounting..."
         if [[ "$rootfs" == *"b"* ]]; then
-            sudo umount /dev/sda1
+            sudo umount /dev/sda?*
         elif [[ "$rootfs" == *"a"* ]]; then
-            sudo umount /dev/sdb1
-        else
-            echo "No need to unmount."
+            sudo umount /dev/sdb?*
         fi
+        echo "...done"
+    else
+        echo "No need to unmount."
     fi
-    echo "...done"
 fi
 
 # retrieve volume and partition info
@@ -74,28 +74,26 @@ done
 [[ ${#drives[@]} -eq 0 ]] && (printf "No drives found, exiting.\n" && exit 1)
 [[ $(echo "$mem < 1.8" | bc -l ) -eq "1" ]] && printf "Memory is < 2Gib, exiting.\n" && exit 1
 
-
-
-# check selected drives for partitions
-for i in ${!drives[@]}; do
-    echo "wiping drive /dev/${drives[$i]}"
-    sudo wipefs -a /dev/"${drives[$i]}"
-    echo "checking drives for partitions..."
-    if [[ "${volumeInfo[@]}" != *"${drives[$i]}1"* ]]; then # create partition if none exist
-        echo "  Adding partition to "${drives[$i]}
-	sudo parted /dev/"${drives[$i]}" mklabel gpt
-        sudo parted /dev/"${drives[$i]}" mkpart primary ext4 0 1024 ignore
-    fi
-    echo "...done"
-done
-
 # print summary
 for i in ${!drives[@]}; do
-    printf "${bold}/dev/"${drives[$i]}"1${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
+    printf "${bold}/dev/"${drives[$i]}"${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
 done
 
 # exit if in test mode
 [[ "$@" == *"-t"* ]] && exit 1
+
+
+# wipe drives and add partitions
+for i in ${!drives[@]}; do
+    echo "wiping drive /dev/${drives[$i]}..."
+    sudo wipefs -a /dev/"${drives[$i]}"
+    echo "...done"
+    echo "Adding partition to ${drives[$i]} ..."
+	sudo parted /dev/"${drives[$i]}" mklabel gpt
+    sudo parted /dev/"${drives[$i]}" mkpart primary ext4 0 1024 ignore
+    echo "...done"
+done
+
 
 for i in ${!drives[@]}; do
     printf "\nDRIVE #"$(echo "$i + 1" | bc )"\n"
