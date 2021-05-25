@@ -107,7 +107,7 @@ for i in ${!drives[@]}; do
     sudo parted /dev/"${drives[$i]}" resizepart 5 "${sizes[$i]}"G
 
     printf "RESIZING FILESYSTEM...\n"
-    sudo e2fsck -f /dev/"${drives[$i]}"5
+    sudo e2fsck -f -p /dev/"${drives[$i]}"5
     sudo resize2fs -p /dev/"${drives[$i]}"5
 
     printf "DRIVE COMPLETE.\n\n"
