@@ -47,9 +47,9 @@ if [[ "$@" != *"-u"* ]]; then
     if [ "$num" -gt "1" ]; then
         echo "unmounting..."
         if [[ "$rootfs" == *"b"* ]]; then
-            sudo ls /dev/sda?* | xargs -n1 umount -l
+            sudo umount /dev/sda?* || true
         elif [[ "$rootfs" == *"a"* ]]; then
-            sudo ls /dev/sdb?* | xargs -n1 umount -l
+            sudo umount /dev/sdb?* || true
         fi
         echo "...done"
     else
