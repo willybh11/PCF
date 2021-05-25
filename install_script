@@ -21,6 +21,7 @@ if [[ "$@" == *"-g"* ]]; then
     printf "${bold}Attempmting update...\n${normal}"
     cd /install/PCF
     if [[ $connection == "good" && "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
+        printf "${bold}...updated. Running new script...\n${normal}"
         sudo ./install_script $@
         exit 1
     else 
@@ -46,11 +47,11 @@ mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 
 # unmount if necessary
 if [[ "$@" != *"-u"* ]]; then
-    printf "${bold}checking for mounted drives...${normal}"
+    printf "${bold}Checking for mounted drives...\n${normal}"
     num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
     rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
     if [ "$num" -gt "1" ]; then
-        printf "${bold}unmounting...${normal}\n"
+        printf "${bold}Unmounting...\n${normal}"
         if [[ "$rootfs" == *"b"* ]]; then
             sudo umount /dev/sda?* || true
         elif [[ "$rootfs" == *"a"* ]]; then
@@ -58,7 +59,7 @@ if [[ "$@" != *"-u"* ]]; then
         fi
         printf "${bold}...done${normal}\n"
     else
-        printf "${bold}No need to unmount.${normal}\n"
+        printf "${bold}...no need to unmount.${normal}\n"
     fi
 fi
 
@@ -90,10 +91,10 @@ done
 
 # wipe drives and add partitions
 for i in ${!drives[@]}; do
-    printf "${bold}wiping drive /dev/${drives[$i]}...\n${normal}"
+    printf "${bold}Wiping drive /dev/${drives[$i]}...\n${normal}"
     sudo wipefs -a /dev/"${drives[$i]}"
     printf "${bold}...done\n${normal}"
-    printf "${bold}Adding partition to ${drives[$i]} ...\n${normal}"
+    printf "${bold}Adding partition to /dev/${drives[$i]}...\n${normal}"
 	sudo parted /dev/"${drives[$i]}" mklabel gpt
     sudo parted /dev/"${drives[$i]}" mkpart primary ext4 0% 100%
     printf "${bold}...done\n${normal}"
