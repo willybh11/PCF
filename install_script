@@ -90,7 +90,7 @@ for i in ${!drives[@]}; do
     echo "...done"
     echo "Adding partition to ${drives[$i]} ..."
 	sudo parted /dev/"${drives[$i]}" mklabel gpt
-    sudo parted /dev/"${drives[$i]}" mkpart primary ext4 0 1024 ignore
+    sudo parted /dev/"${drives[$i]}" mkpart primary ext4 0% 100%
     echo "...done"
 done
 
