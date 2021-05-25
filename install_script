@@ -103,7 +103,7 @@ for i in ${!drives[@]}; do
 
     printf "RESIZING FILESYSTEM...\n"
     sudo e2fsck -f /dev/"${drives[$i]}"1
-    sudo resize2fs -p /dev/"${drives[$i]}"1
+    sudo /install/PCF/e2fsprogs-1.43.1/resize/resize2fs -p /dev/"${drives[$i]}${partnum}"
 
     printf "DRIVE COMPLETE.\n\n"
 done
