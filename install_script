@@ -116,6 +116,7 @@ for i in ${!drives[@]}; do
 
     printf "${bold}IMAGING...\n${normal}"
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
+    sudo umount /dev/"${drives[$i]}"?* || true
 
     printf ${bold}"RESIZING EXTENDED PARTITION...\n${normal}"
     if [[ "$@" == *"-u"* ]]; then 
