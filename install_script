@@ -82,6 +82,7 @@ done
 
 # print summary
 for i in ${!drives[@]}; do
+    printf "the number is ${images[${#images[@]}-1]}"
     printf "${bold}/dev/"${drives[$i]}"${normal} will be imaged with ${bold}${images[${#images[@]}-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
 done
 
