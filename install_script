@@ -108,13 +108,26 @@ for i in ${!drives[@]}; do
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
 
     printf ${bold}"RESIZING EXTENDED PARTITION...\n${normal}"
-    sudo parted /dev/"${drives[$i]}" resizepart 2 "${sizes[$i]}"G
+    if [[ "$@" == *"-u"* ]]; then 
+        sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
+    else
+        sudo parted /dev/"${drives[$i]}" resizepart 2 "${sizes[$i]}"G
+    fi
     printf "${bold}RESIZING LOGICAL PARTITION... \n${normal}"
-    sudo parted /dev/"${drives[$i]}" resizepart 5 "${sizes[$i]}"G
+    if [[ "$@" == *"-u"* ]]; then 
+        sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
+    else
+        sudo parted /dev/"${drives[$i]}" resizepart 5 "${sizes[$i]}"G
+    fi
 
     printf "${bold}RESIZING FILESYSTEM...\n${normal}"
-    sudo e2fsck -f -p /dev/"${drives[$i]}"5
-    sudo resize2fs -p /dev/"${drives[$i]}"5
+    if [[ "$@" == *"-u"* ]]; then 
+        sudo e2fsck -f -p /dev/"${drives[$i]}"1
+        sudo resize2fs -p /dev/"${drives[$i]}"1
+    else 
+        sudo e2fsck -f -p /dev/"${drives[$i]}"5
+        sudo resize2fs -p /dev/"${drives[$i]}"5
+    fi
 
     printf "${bold}DRIVE COMPLETE.\n\n${normal}"
 done
