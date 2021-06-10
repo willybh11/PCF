@@ -109,15 +109,15 @@ for i in ${!drives[@]}; do
 
     printf ${bold}"RESIZING EXTENDED PARTITION...\n${normal}"
     if [[ "$@" == *"-u"* ]]; then 
-        sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
+        sudo parted -s /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
     else
-        sudo parted /dev/"${drives[$i]}" resizepart 2 "${sizes[$i]}"G
+        sudo parted -s /dev/"${drives[$i]}" resizepart 2 "${sizes[$i]}"G
     fi
     printf "${bold}RESIZING LOGICAL PARTITION... \n${normal}"
     if [[ "$@" == *"-u"* ]]; then 
-        sudo parted /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
+        sudo parted -s /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
     else
-        sudo parted /dev/"${drives[$i]}" resizepart 5 "${sizes[$i]}"G
+        sudo parted -s /dev/"${drives[$i]}" resizepart 5 "${sizes[$i]}"G
     fi
 
     printf "${bold}RESIZING FILESYSTEM...\n${normal}"
