@@ -82,7 +82,7 @@ done
 
 # print summary
 for i in ${!drives[@]}; do
-    printf "${bold}/dev/"${drives[$i]}"${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
+    printf "${bold}/dev/"${drives[$i]}"${normal} will be imaged with ${bold}${images[${#images[@]}-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
 done
 
 # exit if in test mode
