@@ -56,6 +56,15 @@ if [ "$num" -gt "1" ]; then
     elif [[ "$rootfs" == *"a"* ]]; then
         sudo umount /dev/sdb?* || true
     fi
+    sudo umount /dev/sdc?* || true
+    sudo umount /dev/sdd?* || true
+    sudo umount /dev/sde?* || true
+    sudo umount /dev/sdf?* || true
+    sudo umount /dev/sdg?* || true
+    sudo umount /dev/sdh?* || true
+    sudo umount /dev/sdi?* || true
+    sudo umount /dev/sdj?* || true
+    sudo umount /dev/sdk?* || true
     printf "${bold}...done${normal}\n"
 else
     printf "${bold}...no need to unmount.${normal}\n"
