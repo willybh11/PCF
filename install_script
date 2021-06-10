@@ -71,6 +71,9 @@ sizes=()
 # find unmounted paritions, get sizes
 for i in ${!volumeInfo[@]}; do
     if [[ "${volumeInfo[$i]}" == "sd"[[:lower:]] && "${volumeInfo[ "$( echo "$i + 4" | bc )"]}" != *"/"* ]]; then
+        if [[ "$@" == *"-u"* && "$(echo "${volumeInfo["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc)" -gt "120" ]]; then 
+            continue
+        fi
         drives+=(${volumeInfo[$i]})
         sizes+=( $(echo "${volumeInfo["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc) )
     fi
@@ -82,8 +85,7 @@ done
 
 # print summary
 for i in ${!drives[@]}; do
-    printf "the number is ${#images[@]}"
-    printf "${bold}/dev/"${drives[$i]}"${normal} will be imaged with ${bold}${images[${#images[@]}-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
+    printf "${bold}/dev/"${drives[$i]}"${normal} will be imaged with ${bold}${images[-1]}${normal} and resized to ${bold}${sizes[$i]} GiB${normal}.\n"
 done
 
 # exit if in test mode
