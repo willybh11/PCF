@@ -46,21 +46,19 @@ mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 [[ "$@" == *"-i"* ]] && printf "${bold}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n${normal}"
 
 # unmount if necessary
-if [[ "$@" != *"-u"* ]]; then
-    printf "${bold}Checking for mounted drives...\n${normal}"
-    num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
-    rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
-    if [ "$num" -gt "1" ]; then
-        printf "${bold}Unmounting...\n${normal}"
-        if [[ "$rootfs" == *"b"* ]]; then
-            sudo umount /dev/sda?* || true
-        elif [[ "$rootfs" == *"a"* ]]; then
-            sudo umount /dev/sdb?* || true
-        fi
-        printf "${bold}...done${normal}\n"
-    else
-        printf "${bold}...no need to unmount.${normal}\n"
+printf "${bold}Checking for mounted drives...\n${normal}"
+num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
+rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
+if [ "$num" -gt "1" ]; then
+    printf "${bold}Unmounting...\n${normal}"
+    if [[ "$rootfs" == *"b"* ]]; then
+        sudo umount /dev/sda?* || true
+    elif [[ "$rootfs" == *"a"* ]]; then
+        sudo umount /dev/sdb?* || true
     fi
+    printf "${bold}...done${normal}\n"
+else
+    printf "${bold}...no need to unmount.${normal}\n"
 fi
 
 # retrieve volume and partition info
