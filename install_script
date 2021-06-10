@@ -82,7 +82,7 @@ for i in ${!volumeInfo[@]}; do
             continue
         fi
         drives+=(${volumeInfo[$i]})
-        sizes+=( $(echo "${volumeInfo["$( echo "$i + 1" | bc )"]} / 1024^3 - 5" | bc) )
+        sizes+=( $(echo "${volumeInfo["$( echo "$i + 1" | bc )"]} / 1024^3" | bc) )
     fi
 done
 
