@@ -51,20 +51,21 @@ num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
 rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
 if [ "$num" -gt "1" ]; then
     printf "${bold}Unmounting...\n${normal}"
-    if [[ "$rootfs" == *"b"* ]]; then
-        sudo umount /dev/sda?* || true
-    elif [[ "$rootfs" == *"a"* ]]; then
-        sudo umount /dev/sdb?* || true
-    fi
-    sudo umount /dev/sdc?* || true
-    sudo umount /dev/sdd?* || true
-    sudo umount /dev/sde?* || true
-    sudo umount /dev/sdf?* || true
-    sudo umount /dev/sdg?* || true
-    sudo umount /dev/sdh?* || true
-    sudo umount /dev/sdi?* || true
-    sudo umount /dev/sdj?* || true
-    sudo umount /dev/sdk?* || true
+    sudo umount -a
+    # if [[ "$rootfs" == *"b"* ]]; then
+    #     sudo umount /dev/sda?* || true
+    # elif [[ "$rootfs" == *"a"* ]]; then
+    #     sudo umount /dev/sdb?* || true
+    # fi
+    # sudo umount /dev/sdc?* || true
+    # sudo umount /dev/sdd?* || true
+    # sudo umount /dev/sde?* || true
+    # sudo umount /dev/sdf?* || true
+    # sudo umount /dev/sdg?* || true
+    # sudo umount /dev/sdh?* || true
+    # sudo umount /dev/sdi?* || true
+    # sudo umount /dev/sdj?* || true
+    # sudo umount /dev/sdk?* || true
     printf "${bold}...done${normal}\n"
 else
     printf "${bold}...no need to unmount.${normal}\n"
@@ -116,9 +117,11 @@ for i in ${!drives[@]}; do
 
     printf "${bold}IMAGING...\n${normal}"
     pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
-    sudo umount /dev/"${drives[$i]}"?* || true
+    printf "${bold}UNMOUNTING (again)...\n${normal}"
+    sudo umount -a
+    # sudo umount /dev/"${drives[$i]}"?* || true
 
-    printf ${bold}"RESIZING EXTENDED PARTITION...\n${normal}"
+    printf ${bold}"RESIZING EXTENDED PARTITION...\n${normal}" # warning shrinking partition can cause data loss
     if [[ "$@" == *"-u"* ]]; then 
         sudo parted -s /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
     else
