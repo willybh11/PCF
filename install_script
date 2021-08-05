@@ -107,7 +107,8 @@ for i in ${!drives[@]}; do
 
     printf "${bold}IMAGING...\n${normal}"
     # pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
-    dd if=/install/"${images[-1]}" | pv -s $(du -sh /install/${images[-1]} | cut -c1-3) | dd of=/dev/"${drives[$i]}" bs=1M iflag=fullblock
+    # dd if=/install/"${images[-1]}" | pv -s $(du -sh /install/${images[-1]} | cut -c1-3) | dd of=/dev/"${drives[$i]}" bs=1M iflag=fullblock
+    time fcat /install/"${images[-1]}" >/dev/"${drives[$i]}"
     printf "${bold}UNMOUNTING (again)...\n${normal}"
     if [[ "$rootfs" == *"b"* ]]; then
         sudo umount /dev/sd[ac-m]* || true
