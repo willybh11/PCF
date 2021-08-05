@@ -107,7 +107,7 @@ for i in ${!drives[@]}; do
 
     printf "${bold}IMAGING...\n${normal}"
     # pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
-    printf $(du -sh /install/${images[-1]} | cut -f1 -d"G")
+    printf "$(du -sh /install/${images[-1]} | cut -f1 -d"G")\n"
     dd if=/install/"${images[-1]}" | pv -s $(du -sh /install/${images[-1]} | cut -f1 -d"G") | dd of=/dev/"${drives[$i]}" bs=100M iflag=fullblock
     printf "${bold}UNMOUNTING (again)...\n${normal}"
     if [[ "$rootfs" == *"b"* ]]; then
