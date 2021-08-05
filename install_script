@@ -107,7 +107,7 @@ for i in ${!drives[@]}; do
 
     printf "${bold}IMAGING...\n${normal}"
     # pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
-    dd if=/install/"${images[-1]}" of=/dev/"${drives[$i]}" bs=1M oflag=direct status=progress
+    dd if=/install/"${images[-1]}" | pv -tearp -s "${sizes[$i]}" | of=/dev/"${drives[$i]}" bs=100M iflag=fullblock
     printf "${bold}UNMOUNTING (again)...\n${normal}"
     if [[ "$rootfs" == *"b"* ]]; then
         sudo umount /dev/sd[ac-m]* || true
