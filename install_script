@@ -17,12 +17,20 @@ normal=$(tput sgr0)
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
     cd /install/PCF
-    if [[ "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
-        sudo ./install_script $@
-    else 
-        echo "${bold}Update failed.${normal}"
+    ping -q -w 1 -c 1 `ip r | grep default | cut -d ' ' -f 3` > /dev/null && connection="good" || connection="bad"
+    if [ connection="good" ]; then
+        if [[ "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
+            sudo ./install_script $@
+            exit 1
+        else 
+            echo "${bold}Already up to date.${normal}"
+        fi
+    else
+        echo "${bold}Bad internet connection.${normal}"
+        exit 1
     fi
-    exit 1
+
+    
 fi
 
 # retrieve system info
