@@ -27,8 +27,6 @@ if [[ "$@" == *"-g"* ]]; then
         echo "${bold}Bad internet connection.${normal}"
         exit 1
     fi
-
-    
 fi
 
 # retrieve system info
@@ -96,28 +94,6 @@ for i in ${!drives[@]}; do
         sudo e2fsck -f -p /dev/"${drives[$i]}"5
         sudo resize2fs -p /dev/"${drives[$i]}"5
     fi
-
-    # printf ${bold}"RESIZING EXTENDED PARTITION...\n${normal}"
-    # if [[ "$@" == *"-u"* ]]; then 
-    #     sudo parted -s /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
-    # else
-    #     sudo parted -s /dev/"${drives[$i]}" resizepart 2 "${sizes[$i]}"G
-    # fi
-    # printf "${bold}RESIZING LOGICAL PARTITION... \n${normal}"
-    # if [[ "$@" == *"-u"* ]]; then 
-    #     sudo parted -s /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
-    # else
-    #     sudo parted -s /dev/"${drives[$i]}" resizepart 5 "${sizes[$i]}"G
-    # fi
-
-    # printf "${bold}RESIZING FILESYSTEM...\n${normal}"
-    # if [[ "$@" == *"-u"* ]]; then 
-    #     sudo e2fsck -f -p /dev/"${drives[$i]}"1
-    #     sudo resize2fs -p /dev/"${drives[$i]}"1
-    # else 
-    #     sudo e2fsck -f -p /dev/"${drives[$i]}"5
-    #     sudo resize2fs -p /dev/"${drives[$i]}"5
-    # fi
 
     printf "${bold}DRIVE COMPLETE.\n\n${normal}"
 done
