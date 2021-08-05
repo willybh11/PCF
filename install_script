@@ -79,7 +79,7 @@ done
 
 # wipe, image, and resize drives
 for i in ${!drives[@]}; do
-    printf "${bold}\nDRIVE #"$(echo "$i + 1" | bc )"\n${normal}"
+    printf "${bold}\n\nDRIVE #"$(echo "$i + 1" | bc )"\n${normal}"
 
     sudo wipefs -a /dev/"${drives[$i]}"
     sudo parted /dev/"${drives[$i]}" mklabel gpt
