@@ -16,24 +16,17 @@ normal=$(tput sgr0)
 
 # update if requested
 if [[ "$@" == *"-g"* ]]; then
-    ping -q -w 1 -c 1 `ip r | grep default | cut -d ' ' -f 3` > /dev/null && connection="good" || connection="bad"
-    printf "${bold}Internet connection is: ${normal}$connection\n"
-    printf "${bold}Attempmting update...\n${normal}"
     cd /install/PCF
-    if [[ $connection == "good" && "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
-        printf "${bold}...updated. Running new script...\n${normal}"
+    if [[ "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
         sudo ./install_script $@
-        exit 1
     else 
-        echo "${bold}...already updated or no update found.${normal}"
+        echo "${bold}Update failed.${normal}"
     fi
+    exit 1
 fi
-
-
 
 # retrieve system info
 cpu="$(cat /proc/cpuinfo | grep 'name' | uniq )"
-cpu=${cpu%CPU*}
 cpu=${cpu##*: }
 mem="$(cat /proc/meminfo | grep 'MemTotal')"
 mem=${mem% kB*}
@@ -42,24 +35,11 @@ mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 [[ "$@" == *"-u"* ]] || IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'pcf'))"
 [[ "$@" == *"-u"* ]] && IFS=' ' read -r -a images <<< "$(echo $(ls /install | grep 'usb'))"
 
-# print system info
+# print system info if requested
 [[ "$@" == *"-i"* ]] && printf "${bold}\nCPU:\t${bold}$cpu${normal}\nMEM:\t${bold}$mem GiB${normal}\n\n${normal}"
 
 # unmount if necessary
-# printf "${bold}Checking for mounted drives...\n${normal}"
-# num=$(grep -o "/sd" <<< "$(findmnt -lo source)" | wc -l)
-# rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
-# if [ "$num" -gt "1" ]; then
-    printf "${bold}Unmounting...\n${normal}"
-    sudo umount /dev/sd[a-m]* || true
-    # if [[ "$rootfs" == *"b"* ]]; then
-    #     sudo umount /dev/sd[ac-m]* || true
-    # elif [[ "$rootfs" == *"a"* ]]; then
-    #     sudo umount /dev/sd[b-m]* || true
-    # fi
-# else
-#     printf "${bold}...no need to unmount.${normal}\n"
-# fi
+sudo umount /dev/sd[a-m]* || true
 
 # retrieve volume and partition info
 volumeInfo=( $(lsblk -b -n -o name,size,mountpoint | tr '\n' ' ') )
@@ -89,30 +69,16 @@ done
 # exit if in test mode
 [[ "$@" == *"-t"* ]] && exit 1
 
-
-# wipe drives and add partitions
-for i in ${!drives[@]}; do
-    printf "${bold}Wiping drive /dev/${drives[$i]}...\n${normal}"
-    sudo wipefs -a /dev/"${drives[$i]}"
-    printf "${bold}Adding partition to /dev/${drives[$i]}...\n${normal}"
-	sudo parted /dev/"${drives[$i]}" mklabel gpt
-    sudo parted /dev/"${drives[$i]}" mkpart primary ext4 0% 100%
-done
-
-# image and resize drives
+# wipe, image, and resize drives
 for i in ${!drives[@]}; do
     printf "${bold}\nDRIVE #"$(echo "$i + 1" | bc )"\n${normal}"
 
-    printf "${bold}IMAGING...\n${normal}"
+    sudo wipefs -a /dev/"${drives[$i]}"
+    sudo parted /dev/"${drives[$i]}" mklabel gpt
+    sudo parted /dev/"${drives[$i]}" mkpart primary ext4 0% 100%
     # pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
     dd if=/install/"${images[-1]}" | pv -s $(du -sh /install/${images[-1]} | cut -c1-3) | dd of=/dev/"${drives[$i]}" bs=1M iflag=fullblock
-    printf "${bold}UNMOUNTING (again)...\n${normal}"
     sudo umount /dev/sd[a-m]* || true
-    # if [[ "$rootfs" == *"b"* ]]; then
-    #     sudo umount /dev/sd[ac-m]* || true
-    # elif [[ "$rootfs" == *"a"* ]]; then
-    #     sudo umount /dev/sd[b-m]* || true
-    # fi
 
     if [[ "$@" == *"-u"* ]]; then 
         sudo parted -s /dev/"${drives[$i]}" resizepart 1 "${sizes[$i]}"G
