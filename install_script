@@ -51,7 +51,7 @@ mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 # rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
 # if [ "$num" -gt "1" ]; then
     printf "${bold}Unmounting...\n${normal}"
-    sudo umount --quiet /dev/sd[a-m]* || true
+    sudo umount /dev/sd[a-m]* || true
     # if [[ "$rootfs" == *"b"* ]]; then
     #     sudo umount /dev/sd[ac-m]* || true
     # elif [[ "$rootfs" == *"a"* ]]; then
@@ -107,7 +107,7 @@ for i in ${!drives[@]}; do
     # pv </install/"${images[-1]}" >/dev/"${drives[$i]}"
     dd if=/install/"${images[-1]}" | pv -s $(du -sh /install/${images[-1]} | cut -c1-3) | dd of=/dev/"${drives[$i]}" bs=1M iflag=fullblock
     printf "${bold}UNMOUNTING (again)...\n${normal}"
-    sudo umount -q /dev/sd[a-m]* || true
+    sudo umount /dev/sd[a-m]* || true
     # if [[ "$rootfs" == *"b"* ]]; then
     #     sudo umount /dev/sd[ac-m]* || true
     # elif [[ "$rootfs" == *"a"* ]]; then
