@@ -22,8 +22,6 @@ if [[ "$@" == *"-g"* ]]; then
         if [[ "$( echo $(sudo git pull))" != *"up-to-date"* ]]; then
             sudo ./install_script $@
             exit 1
-        else 
-            echo "${bold}Already up to date.${normal}"
         fi
     else
         echo "${bold}Bad internet connection.${normal}"
