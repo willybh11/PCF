@@ -51,7 +51,7 @@ mem="$( echo "scale=1; $mem / 1024 / 1024" | bc -l)"
 # rootfs=$(readlink -f /dev/block/$(mountpoint -d /))
 # if [ "$num" -gt "1" ]; then
     printf "${bold}Unmounting...\n${normal}"
-    sudo umount -q /dev/sd[a-m]* || true
+    sudo umount --quiet /dev/sd[a-m]* || true
     # if [[ "$rootfs" == *"b"* ]]; then
     #     sudo umount /dev/sd[ac-m]* || true
     # elif [[ "$rootfs" == *"a"* ]]; then
