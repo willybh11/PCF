@@ -6,6 +6,7 @@
 # -t  (test)        :  Does not make changes to drives.
 # -u  (usb)         :  Uses USB image instead of final image. Doesn't poweroff after imaging.
 # -g  (git)         :  Checks for updates (and potentially update the script) before running.
+# -s  (secure wipe) :  Uses shred to securely wipe the drive before imaging.
 
 # exit if any command fails
 set -e
@@ -78,8 +79,8 @@ done
 for i in ${!drives[@]}; do
     printf "${bold}\n\nDRIVE #"$(echo "$i + 1" | bc )"\n${normal}"
 
-    # secure wipe drive
-    sudo shred -vfz /dev/"${drives[$i]}"
+    # secure wipe drive if requested
+    [[ "$@" == *"-s"* ]] && sudo shred -vfz /dev/"${drives[$i]}"
 
     # wipe and change filesystem
     sudo wipefs -a /dev/"${drives[$i]}"
